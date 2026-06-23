@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: mdm-assistant
+  web:
+    resources:
+      static-locations: classpath:/static,file:../frontend
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/mdm_assistant?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+deepseek:
+  api:
+    url: ${DEEPSEEK_API_URL:https://api.deepseek.com/chat/completions}
+    key: ${DEEPSEEK_API_KEY}
+    model: ${DEEPSEEK_MODEL:deepseek-chat}
+
+bocha:
+  api:
+    url: ${BOCHA_API_URL:https://api.bocha.cn/v1/web-search}
+    key: ${BOCHA_API_KEY}
+    enabled: ${BOCHA_API_ENABLED:true}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      llmApi:
+        registerHealthIndicator: true
+        slidingWindowSize: 3
+        failureRateThreshold: 100
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+  retry:
+    instances:
+      llmApi:
+        maxAttempts: 3
+        waitDuration: 1s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - java.lang.Exception
+
+chat:
+  memory:
+    max-messages: 10
+  token:
+    session-limit: 100000
+
+ocr:
+  base-url: http://localhost:8001
+  timeout: PT15S
+  max-retries: 3
+
+rag:
+  search:
+    enabled: true
+
+app:
+  warranty-check-days: 30
+
+device:
+  data:
+    path: data/devices.json
+
+logging:
+  level:
+    org.springframework.web.servlet.resource.ResourceHttpRequestHandler: WARN
+    com.mdm.assistant.service.GsmaCrawlerService: DEBUG
+    com.mdm.assistant.service.RagService: DEBUG
+    com.mdm.assistant.service.ChatService: DEBUG
